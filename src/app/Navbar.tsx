@@ -7,7 +7,9 @@ export default function Navbar() {
 
   return (
     <nav className="bg-black text-white px-6 py-3 flex justify-between items-center">
-      <div className="text-green-400 font-bold text-lg">AI<span className="text-white">4</span>INVEST</div>
+      <div className="text-green-400 font-bold text-lg">
+        AI<span className="text-white">4</span>INVEST
+      </div>
       <div className="flex items-center gap-4">
         <Link href="/" className="text-sm">Home</Link>
         {!username ? (

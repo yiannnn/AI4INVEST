@@ -24,7 +24,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem("username");
+    localStorage.removeItem("risk_bucket");
     setUsername(null);
+    window.location.href = "/"; 
   };
 
   return (
