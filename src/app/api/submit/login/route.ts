@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const { email, password } = await req.json();
 
     const content = await readFile(usersFile, 'utf-8');
-    const users = JSON.parse(content) as { email: string; password: string; username: string }[];
+    const users = JSON.parse(content) as { email: string; password: string; username: string;  risk_bucket:string}[];
 
     const foundUser = users.find(
       (user) => user.email === email && user.password === password
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
-    return NextResponse.json({ message: 'Login successful', username: foundUser.username }, { status: 200 });
+    return NextResponse.json({ message: 'Login successful', username: foundUser.username, risk_bucket:foundUser.risk_bucket }, { status: 200 });
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

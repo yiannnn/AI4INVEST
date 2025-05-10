@@ -4,17 +4,9 @@ import Link from "next/link";
 
 export default function CreateFormPage() {
     const handleSubmit = async () => {
-        console.log("Submitting form:", formData);
       
         try {
-          // 送出表單到你自己的註冊 API（可留著）
-          const response = await fetch("/api/submit/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-          });
-      
-          if (!response.ok) throw new Error("User creation failed");
+          
       
           // 送出表單到 Flask 的 /api/predict 做風險預測
           const predictResponse = await fetch("http://localhost:5050/api/predict", {
@@ -46,9 +38,25 @@ export default function CreateFormPage() {
           if (!predictResponse.ok) throw new Error("Prediction failed");
       
           const predictData = await predictResponse.json();
-          localStorage.setItem("risk_bucket", predictData.risk_bucket); // 儲存風險類別
+          localStorage.setItem("risk_bucket", predictData.risk_bucket);
+          
+          const submissionData = {
+            email: formData.email,
+            username: formData.username,
+            password: formData.password,
+            risk_bucket: predictData.risk_bucket
+          };
+
+          // 送出表單到你自己的註冊 API（可留著）
+          const response = await fetch("/api/submit/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(submissionData),
+          });
       
-          // ✅ 導向 dashboard
+          if (!response.ok) throw new Error("User creation failed");
+          localStorage.setItem("username", formData.username);
+          
           window.location.href = "/dashboard";
       
         } catch (error) {

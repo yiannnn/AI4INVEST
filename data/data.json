@@ -154,5 +154,38 @@
     "Self-efficacy": "2",
     "Self-rated overall financial knowledge": "1",
     "submittedAt": "2025-05-10T09:58:56.958Z"
+  },
+  {
+    "email": "admin",
+    "username": "admin",
+    "password": "asdfasdf",
+    "Age Group": "2",
+    "Ethnicity": "2",
+    "Education Level": "2",
+    "Marital Status": "1",
+    "Financially dependent children": "1",
+    "Annual Household Income": "2",
+    "spending_vs_income": "2",
+    "difficulty_covering_expenses": "2",
+    "Emergency fund to cover 3 Months expenses": "1",
+    "risk_tolerance": "1",
+    "Account ownership check": "2",
+    "Savings/Money market/CD account ownership": "2",
+    "Employer-sponsored retirement plan ownership": "2",
+    "Regular contribution to a retirement account": "2",
+    "Non-retirement investments in stocks, bonds, mutual funds": "1",
+    "Homeownership": "1",
+    "Current financial condition satisfaction": "3",
+    "Thinking about FC frequency": "2",
+    "Self-efficacy": "3",
+    "Self-rated overall financial knowledge": "2",
+    "submittedAt": "2025-05-10T10:58:59.706Z"
+  },
+  {
+    "email": "admin1",
+    "username": "user1",
+    "password": "123",
+    "risk_bucket": "Low",
+    "submittedAt": "2025-05-10T11:19:40.429Z"
   }
 ]

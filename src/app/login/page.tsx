@@ -19,7 +19,7 @@ export default function CreateFormPage() {
             if (!response.ok) throw new Error("Submission failed");
       
             const data = await response.json();
-      
+            localStorage.setItem("risk_bucket", data.risk_bucket);
             login(data.username); // ← 在這裡用 context 更新狀態
             router.push('/dashboard');
           } catch (error) {
