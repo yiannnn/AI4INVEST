@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_file
 import pandas as pd
 import joblib
 from flask_cors import CORS
+import io
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
@@ -92,11 +93,22 @@ def dashboard():
 
 @app.route("/api/download/<bucket>")
 def download_csv(bucket):
-    bucket_code = risk_le.transform([bucket])[0]
-    df = picks_df[picks_df["bucket"] == bucket_code]
-    fname = f"{bucket.lower()}_picks.csv"
-    df.to_csv(fname)
-    return send_file(fname, as_attachment=True)
+    
+    # Filter the DataFrame
+    df = picks_df[picks_df["risk_label"] == bucket]
+    print(bucket)
+    # Convert DataFrame to CSV in memory
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+
+    # Convert to BytesIO for send_file
+    return send_file(
+        io.BytesIO(csv_buffer.read().encode('utf-8')),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"{bucket.lower()}_picks.csv"
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5050)
