@@ -1,16 +1,10 @@
 'use client';
-import React, { useState, useRef } from "react";
-import Link from "next/link";
-import { profile } from "console";
+import React, { useEffect, useState, useRef} from 'react';
 
-export default function CreateFormPage() {
+export default function EditFormPage() {
+  const [step, setStep] = useState(2);
+  const [formData, setFormData] = useState<any>({});
   const formRef = useRef<HTMLFormElement>(null);
-
-    const handleNextStep1 = () => {
-      if (formRef.current && formRef.current.reportValidity()) {
-        setStep(2);
-      }
-    };
     const handleNextStep2 = () => {
       if (formRef.current?.reportValidity()) {
         setStep(3);
@@ -27,141 +21,65 @@ export default function CreateFormPage() {
         setStep(5);
       }
     };
-    const handleSubmit = async () => {
-      if (!formRef.current?.reportValidity()) {
-        return; 
-      }
-    
-        try {
-          // 送出表單到 Flask 的 /api/predict 做風險預測
-          const predictResponse = await fetch("http://localhost:5050/api/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              "Age Group": formData["Age Group"],
-              "Ethnicity": formData["Ethnicity"],
-              "Education Level": formData["Education Level"],
-              "Marital Status": formData["Marital Status"],
-              "Financially dependent children": formData["Financially dependent children"],
-              "Annual Household Income": formData["Annual Household Income"],
-              "Spending vs Income Past Year": formData.spending_vs_income,
-              "Difficulty covering expenses": formData.difficulty_covering_expenses,
-              "Emergency fund to cover 3 Months expenses": formData["Emergency fund to cover 3 Months expenses"],
-              "Current financial condition satisfaction": formData["Current financial condition satisfaction"],
-              "Thinking about FC frequency": formData["Thinking about FC frequency"],
-              "Account ownership check": formData["Account ownership check"],
-              "Savings/Money market/CD account ownership": formData["Savings/Money market/CD account ownership"],
-              "Employer-sponsored retirement plan ownership": formData["Employer-sponsored retirement plan ownership"],
-              "Regular contribution to a retirement account": formData["Regular contribution to a retirement account"],
-              "Non-retirement investments in stocks, bonds, mutual funds": formData["Non-retirement investments in stocks, bonds, mutual funds"],
-              "Homeownership": formData["Homeownership"],
-              "Self-efficacy": formData["Self-efficacy"],
-              "Self-rated overall financial knowledge": formData["Self-rated overall financial knowledge"],
-            }),
-          });
-      
-          if (!predictResponse.ok) throw new Error("Prediction failed");
-      
-          const predictData = await predictResponse.json();
-          localStorage.setItem("risk_bucket", predictData.risk_bucket);
-          
-          const submissionData = {
-            email: formData.email,
-            username: formData.username,
-            password: formData.password,
-            profile:{
-            "Age Group": formData["Age Group"],
-            "Ethnicity": formData["Ethnicity"],
-            "Education Level": formData["Education Level"],
-            "Marital Status": formData["Marital Status"],
-            "Financially dependent children": formData["Financially dependent children"],
-            "Annual Household Income": formData["Annual Household Income"],
-            spending_vs_income: formData.spending_vs_income,
-            difficulty_covering_expenses: formData.difficulty_covering_expenses,
-            "Emergency fund to cover 3 Months expenses": formData["Emergency fund to cover 3 Months expenses"],
-            risk_tolerance: formData.risk_tolerance,
-            "Account ownership check": formData["Account ownership check"],
-            "Savings/Money market/CD account ownership": formData["Savings/Money market/CD account ownership"],
-            "Employer-sponsored retirement plan ownership": formData["Employer-sponsored retirement plan ownership"],
-            "Regular contribution to a retirement account": formData["Regular contribution to a retirement account"],
-            "Non-retirement investments in stocks, bonds, mutual funds": formData["Non-retirement investments in stocks, bonds, mutual funds"],
-            "Homeownership": formData["Homeownership"],
-            "Current financial condition satisfaction": formData["Current financial condition satisfaction"],
-            "Thinking about FC frequency": formData["Thinking about FC frequency"],
-            "Self-efficacy": formData["Self-efficacy"],
-            "Self-rated overall financial knowledge": formData["Self-rated overall financial knowledge"]},
-            risk_bucket: predictData.risk_bucket
-          };
-          console.log("submissionData:", submissionData);
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('profileData') || '{}');
+    if (saved) {
+      setFormData(saved);
+    }
 
-          const response = await fetch("/api/submit/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(submissionData),
-          });
-
-          if (!response.ok) throw new Error("User creation failed");
-          localStorage.setItem("username", formData.username);
-          localStorage.setItem("profileData", JSON.stringify(submissionData.profile));
-
-          window.location.href = "/dashboard";
-      
-        } catch (error) {
-          console.error(error);
-          alert("Submission failed");
-        }
-      };
-      
-      
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    email: "",
-    username:"",
-    password: "",
-    "Age Group": '',
-    "Ethnicity": '',
-    "Education Level": '',
-    "Marital Status": '',
-    "Financially dependent children": '',
-    "Annual Household Income": '',
-    spending_vs_income: '',
-    difficulty_covering_expenses: '',
-    "Emergency fund to cover 3 Months expenses": '',
-    risk_tolerance: '',
-    "Account ownership check": '',
-    "Savings/Money market/CD account ownership": '',
-    "Employer-sponsored retirement plan ownership": '',
-    "Regular contribution to a retirement account": '',
-    "Non-retirement investments in stocks, bonds, mutual funds": '',
-    "Homeownership": '',
-    "Current financial condition satisfaction": '',
-    "Thinking about FC frequency": '',
-    "Self-efficacy": '',
-    "Self-rated overall financial knowledge": '',
-  });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSubmit = async () => {
+    if (!formRef.current?.reportValidity()) {
+        return; 
+      }
+    const username = localStorage.getItem("username");
+  try {
+    const predictResponse = await fetch("http://localhost:5050/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(formData),
+    });
+
+    if (!predictResponse.ok) throw new Error("Prediction failed");
+    const predictData = await predictResponse.json();
+
+    const updatedFormData = {
+      username:username,
+      profile:formData,
+      risk_bucket: predictData.risk_bucket,
+    };
+
+    const response = await fetch("/api/submit/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedFormData),
+    });
+
+    if (!response.ok) throw new Error("Update failed");
+
+    localStorage.setItem("profileData", JSON.stringify(formData));
+    localStorage.setItem("risk_bucket", predictData.risk_bucket);
+
+    window.location.href = "/dashboard";
+  } catch (error) {
+    console.error(error);
+    alert("Update failed");
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="flex justify-center">
         <div className="w-full max-w-md bg-white p-6 border rounded-lg shadow-md text-black mt-16">
-          <h2 className="text-xl font-semibold text-center mb-4">Create your investment profile</h2>
+          <h2 className="text-xl font-semibold text-center mb-4">Edit Your Investment Profile</h2>
 
-          <form ref={formRef}>
-            {step === 1 && (
-              <>
-                <label className="block mb-2">Email</label>
-                <input name="email" value={formData.email} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required/>
-                <label className="block mb-2">Username</label>
-                <input name="username" value={formData.username} onChange={handleChange} className="w-full mb-4 p-2 border rounded" required/>
-                <label className="block mb-2">Password</label>
-                <input name="password" type="password" value={formData.password} onChange={handleChange} className="w-full mb-6 p-2 border rounded" required/>
-                <button type="button" onClick={handleNextStep1} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
-              </>
-            )}
+        <form ref={formRef}>
           {step === 2 && (
             <>
             <label className="block mb-2">Age Group</label>
@@ -215,7 +133,6 @@ export default function CreateFormPage() {
                 value={formData["Marital Status"]}
                 onChange={handleChange}
                 className="w-full mb-4 p-2 border rounded"
-                required
                 >
                 <option value="">-- Please select an option --</option>
                 <option value="1">Married</option>
@@ -243,7 +160,7 @@ export default function CreateFormPage() {
                 <option value="99">Prefer not to say</option>
             </select>  
             
-            <button type="button" onClick={handleNextStep2} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
+            <button type="button"  onClick={handleNextStep2} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
 
             </>
           )}
@@ -337,9 +254,10 @@ export default function CreateFormPage() {
                 <option value="98">Don't know</option>
                 <option value="99">Prefer not to say</option>
             </select>
-              <button type="button" onClick={handleNextStep3} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
+              <button type="button"  onClick={handleNextStep3} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
             </>
           )}  
+         
           {step === 4 && (
             <>
               <label className="block mb-2">Do you have a checking account?</label>
@@ -426,9 +344,10 @@ export default function CreateFormPage() {
                 <option value="98">Don't know</option>
                 <option value="99">Prefer not to say</option>
             </select>   
-              <button type="button" onClick={handleNextStep4} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
+              <button type="button"  onClick={handleNextStep4} className="w-full bg-gray-700 text-white py-2 rounded hover:bg-black">Next</button>
             </>
           )}  
+
           {step === 5 && (
             <>
               <label className="block mb-2">Satisfaction with current personal financial condition</label>
@@ -477,6 +396,7 @@ export default function CreateFormPage() {
                 value={formData["Self-efficacy"]}
                 onChange={handleChange}
                 className="w-full mb-4 p-2 border rounded"
+                required
                 >
                 <option value="">-- Please select an option --</option>
                 <option value="1">1 - Strongly Disagree</option>
@@ -508,7 +428,7 @@ export default function CreateFormPage() {
                 <option value="98">Don't know</option>
                 <option value="99">Prefer not to say</option>
             </select>   
-            <button type="button" onClick={handleSubmit} className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+            <button type="button"  onClick={handleSubmit}className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
                 Submit
             </button>
               </>

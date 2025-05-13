@@ -6,7 +6,21 @@ const dataFilePath = path.join(process.cwd(), 'data', 'data.json');
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.json();
+
+    const text = await request.text();
+    if (!text) {
+      console.warn("❌ Empty request body");
+      return NextResponse.json({ message: "Empty request body" }, { status: 400 });
+    }
+    const formData = JSON.parse(text);
+    console.log("📨 Received formData:", formData);
+
+    // try {
+    //   formData = JSON.parse(text);
+    // } catch (err) {
+    //   console.error("❌ Invalid JSON format:", err);
+    //   return NextResponse.json({ message: "Invalid JSON format" }, { status: 400 });
+    // }
 
     const dataDir = path.dirname(dataFilePath);
     await mkdir(dataDir, { recursive: true });

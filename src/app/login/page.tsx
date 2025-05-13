@@ -20,7 +20,8 @@ export default function CreateFormPage() {
       
             const data = await response.json();
             localStorage.setItem("risk_bucket", data.risk_bucket);
-            login(data.username); // ← 在這裡用 context 更新狀態
+            localStorage.setItem("profileData", JSON.stringify(data.profile));
+            login(data.username); 
             router.push('/dashboard');
           } catch (error) {
             console.error(error);

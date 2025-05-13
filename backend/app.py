@@ -49,15 +49,45 @@ def predict():
 
     return jsonify({"risk_bucket": risk_bucket})
 
+@app.route("/api/simulate", methods=["POST"])
+def simulate():
+    risk = request.form["risk"]
+    tickers = request.form.getlist("ticker")
+    returns = [float(r) for r in request.form.getlist("pred_return")]
+    amount = float(request.form["amount"])
+    days = int(request.form["days"])
+
+    per_stock = amount / len(tickers)
+    results = []
+
+    for sym, r in zip(tickers, returns):
+        pct90 = r
+        pct_d = pct90 * (days / 90.0)
+        gain = per_stock * pct_d
+        results.append({
+            "ticker": sym,
+            "invested": per_stock,
+            "return_pct": pct_d * 100,
+            "gain_usd": gain
+        })
+
+    return jsonify({
+        "risk": risk,
+        "amount": amount,
+        "days": days,
+        "results": results
+    })
+
 @app.route("/api/dashboard", methods=["POST"])
 def dashboard():
     bucket_str = request.form["risk_bucket"]
-    bucket_code = risk_le.transform([bucket_str])[0]
-    user_picks = picks_df[picks_df["bucket"] == bucket_code]
+    df = picks_df[picks_df["risk_label"] == bucket_str].nlargest(5, "pred_return").reset_index()
+    recs = [{"ticker": r.ticker, "pred_return": r.pred_return}
+            for r in df.itertuples(index=False)]
 
     return jsonify({
         "bucket": bucket_str,
-        "picks": user_picks.reset_index().to_dict(orient="records")
+        "picks": recs
     })
 
 @app.route("/api/download/<bucket>")
